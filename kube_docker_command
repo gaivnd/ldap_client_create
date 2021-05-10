@@ -1,0 +1,396 @@
+Kubectl command：
+
+查看各个continaer运行情况
+1：kubectl get pods -o wide
+查看各个vm card的ip address
+2： kubectl get nodes -o=go-template --template='{{range .items}}{{.metadata.labels.nodename}}: {{.metadata.name}}{{printf "\n"}}{{end}}'
+创建pod及其contianer
+
+Latest: kubectl get node cbam-a3f6c0888727433b90869f129c5-admintd-node-0 -o yaml | grep nodeip
+3：kubectl create -f spfe_bl3.yaml
+删除pod及其contianer
+4：kubectl delete -f webui.yaml
+同上 删除pod
+5：kubectl delete pod etcd2-2126059083-e2u5t
+查看某个pod/container 没有正常启动的原因
+6：Kubectl describe pod etcd1-743773762-a3kan
+打印某个contianer的log（以下命令为3m以内的log）
+7:kubectl  httplb1 --since=3m|tee 8080.log
+	tcpdump -i any -vv -w spefget.pcap
+进入某个contianer的命令：
+8:kubectl exec -ti redis-master-m679m bash
+ 
+415_tenant_fix_right
+
+Docker command:
+
+查看那些container已经退出，可以删除内存
+1:docker ps -a | grep Exit
+   docker rm + container id
+
+查看某个vm下（oam/lb/bl）下的imageid
+2: docker images
+删除image
+    docker rmi + images id 
+导入image：
+    docker load -i spfeimage.tar.gz
+
+改变导入的image的tag的名称
+docker tag 0c1061853a8c spfeimage:old
+docker tag 65e94e03e732 wolfe:1114
+
+
+登入到contianer所在的vm card上，从container中拷入拷出数据：
+标红的为contianer id 可由docker ps得到
+3:docker cp c0bd1b9a9c26:/utas/logs/rpgwmon.log rpgwmon.log
+   docker cp  rpgwmon.log c0bd1b9a9c26:/utas/logs/rpgwmon.log
+
+登入到contianer所在的vm card上，打印container的log
+4:print log
+标红的为contianer id 可由docker ps得到
+docker logs -f --tail=0 018bfad398fa | /root/data/logfmt > ne2789_c3.log
+
+检查vm的信息
+5:docker info
+
+查找container id并且重启container
+6:docker ps
+docker restart d4d9d6a63042
+
+可通过docker --help 查找docker的各种命令
+
+
+7:
+/etc/sysconfig/docker-registries 
+
+DOCKER_REGISTRIES="--insecure-registry utas-change-registry.dynamic.nsn-net.net:8080"
+DOCKER_EXTRA_REGISTRIES=""
+
+/repository/integration/glsgwimage	
+
+
+service docker restart
+
+# docker save image:tag > image.tar 
+
+vi /etc/resolv.conf 
+
+curl -i --cert /etc/docker-registry/registry1.pem --key /etc/docker-registry/registry1-key.pem --cacert  /etc/docker-registry/ca.pem https://utas-change-registry.dynamic.nsn-net.net:5000/v2/_catalog
+
+
+
+
+8： test Webui if work
+
+curl localhost:8080/ntas_webui/login
+
+
+
+
+
+修改tafe的loglevel：/data0/sbl.cfg
+LOG_LEVEL=5
+
+
+
+etcd: 以下命令需进入etcd container
+etcdctl ls
+列出etcd container中所有的数据
+etcdctl ls --recursive
+得到具体某个数据的具体值
+etcdctl get /tas01/services/L4TD/EXT/CLIENT/SSDB/utas2_mvm_ft1-bl-node-2/ae2bb2312231/TAFE-110-3cdb
+删除某个数据的具体值
+etcdctl rm /tas01/services/L4TD/EXT/CLIENT/SSDB/utas2_mvm_ft1-bl-node-2/ae2bb2312231/TAFE-110-3cdb
+
+ 
+Httplb:
+
+/usr/nginx_configurator
+
+  # Backends Configs
+
+  upstream cts-ut_http_backend
+  {
+    server 10.0.2.102:7861      fail_timeout=10s;    # utas2_mvm_ft1-bl-node-3 -
+ 8fd4c0e5e8c9
+
+    keepalive 10;
+  }
+
+  upstream cts-soap-sub_http_backend
+  {
+    server 10.0.2.102:8080      fail_timeout=10s;    # utas2_mvm_ft1-bl-node-3 -
+ 8fd4c0e5e8c9
+
+    keepalive 10;
+  }
+
+Redis command
+
+1: redis-cli -h 10.0.0.118 info
+2: redis-cli -h 10.0.0.11
+3:keys *
+4:hset
+5:hget
+6:hdel
+7: cat *.hset | redis-cli -h 10.0.0.11
+8:del "sel-global-call-rejection-list.0" 删除表
+
+
+
+Kube
+https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+
+	1. Install docker
+# (Install Docker CE)
+## Set up the repository:
+### Install packages to allow apt to use a repository over HTTPS
+apt-get update && apt-get install -y \
+  apt-transport-https ca-certificates curl software-properties-common gnupg2
+
+# Add Docker's official GPG key:
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+
+# Add the Docker apt repository:
+add-apt-repository \
+  "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) \
+  stable"
+# Install Docker CE
+apt-get update && apt-get install -y \
+  containerd.io=1.2.13-2 \
+  docker-ce=5:19.03.11~3-0~ubuntu-$(lsb_release -cs) \
+  docker-ce-cli=5:19.03.11~3-0~ubuntu-$(lsb_release -cs)
+# Set up the Docker daemon
+cat > /etc/docker/daemon.json <<EOF
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
+mkdir -p /etc/systemd/system/docker.service.d
+
+# Restart Docker
+systemctl daemon-reload
+systemctl restart docker
+
+systemctl enable docker
+
+
+
+
+https://github.com/gaivnd/note
+
+	2. Install 
+
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+sudo sysctl --system
+
+	sudo apt-get update && sudo apt-get install -y apt-transport-https curl
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+sudo apt-get update
+sudo apt-get install -y kubelet kubeadm kubectl
+sudo apt-mark hold kubelet kubeadm kubectl
+
+systemctl daemon-reload
+systemctl restart kubelet
+
+
+In master:
+	1) kubeadm init --image-repository registry.aliyuncs.com/google_containers  --pod-network-cidr=192.168.0.0/16
+
+	2) Allow kubectl access k8s cluster(master node)
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+   3) Allow master node create container.
+
+kubectl taint nodes --all node-role.kubernetes.io/master-
+It should return the following.
+node/<your-hostname> untainted
+
+	4) Create CNI (calico) for k8s cluster
+kubectl create -f https://docs.projectcalico.org/manifests/tigera-operator.yaml
+kubectl create -f https://docs.projectcalico.org/manifests/custom-resources.yaml
+
+# This section includes base Calico installation configuration.
+# For more information, see: https://docs.projectcalico.org/v3.16/reference/installation/api#operator.tigera.io/v1.Installation
+apiVersion: operator.tigera.io/v1
+kind: Installation
+metadata:
+  name: default
+spec:
+  # Configures Calico networking.
+  calicoNetwork:
+    # Note: The ipPools section cannot be modified post-install.
+    ipPools:
+    - blockSize: 26
+      cidr: 192.168.0.0/16
+      encapsulation: VXLANCrossSubnet
+      natOutgoing: Enabled
+      nodeSelector: all()
+
+Work node
+
+	1) kubeadm join 192.168.0.10:6443 --token xn52uu.ym6pmzu22doqqsxv \
+    --discovery-token-ca-cert-hash sha256:5406533d27afce41635a0339f192328fcc46dc53324e39baa5104183b4588b9c
+
+kubeadm join 192.168.0.10:6443 --token id4yfa.oyombvxcz910wj77 \
+    --discovery-token-ca-cert-hash sha256:370ba2440f61796142243698cb41dd2d4c41531b45d34047dd97f68ca63790ab
+
+
+	1) Allow kubectl access k8s cluster(work node)
+scp root@<control-plane-host>:/etc/kubernetes/admin.conf .
+kubectl --kubeconfig ./admin.conf get nodes
+
+
+
+
+
+registry 的搭建
+
+
+
+docker pull registry:2
+docker run -d -v /opt/registry:/var/lib/registry -p 5000:5000 --name myregistry registry:2
+
+
+docker tag nginx:latest localhost:5000/nginx:latest
+通过 docker push 命令将 nginx 镜像 push到私有仓库中：
+docker push localhost:5000/nginx:latest
+
+
+
+Dashboard.
+
+$ kubectl apply -f 
+$ $ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0-rc6/aio/deploy/recommended.yaml
+
+
+
+"1. What was the problem from the customer's or tester's viewpoint? 
+Currently, expect behavior is NTAS only generate VoWiFi App(child) terminating bill AVP when VoWiFi App answer. But ONS have code logic issue in latest site load, so NTAS generate VoWiFi app terminating AVP with sbc-domain HLT(child) and the parent terminating AVP w/o sbc-domain when VoWiF App answer. The BOSS will treat them as two duplicated billing records and discards the second billing record received. If parent and VoWiFi App (child) are registered in the different TAS, and the parent AVP arrived first, the AVP with HLT label will be discard and customer(CUC) will suffer charging losses.
+
+
+2. Where and how was the issue actually found? 
+The issue found by NPI testing before CUC commercial use one number vowifapp service in China United Telecommunications Corp 
+
+
+3. What was the product root cause (technical description of the fault)? 
+	ONS dev work in R34 and R36  start dev at the same time. The parent remove AVP logic is  added in R36 deleted feature line. Therefore the issue does not exist in R34, but the problem appears after R34/R36 merged in R37.   
+
+4. What was done to correct the problem (technical description)? 
+Add the code that deleted by R36 feature line.
+
+5. Any additional relevant facts to note?"
+Before the official fix, the WA already apply in CUC site.
+
+
+
+"1. What was the problem from the customer's or tester's viewpoint? 
+TAFE container have auto-restart happen. 
+
+2. Where and how was the issue actually found? 
+The issue found by R&D MG in China United Telecommunications Corp 
+
+3. What was the product root cause (technical description of the fault)? 
+In one call process rainy day case which still didn't figure out how it happen, the basic call dialog ptr(dlgbasiccallsvcdata) will set to null due to wrong status in basic call service. Before FC000223, the basic call service will directly stop handling and let this call failed with 456 response. But FC000223 logic has return code setting issue for this rainy day case in basic call service and will let basic call service continue handle it even basic call dialog ptr set to null. Then basic call service running the code which already exists for a long time and using this ptr without checking it, so the SegV occur and tafe restart. 
+
+4. What was done to correct the problem (technical description)? 
+a. Fix the FC000223 logic return code setting issue in basic call service. 
+b. Checking basic call dialog ptr before use it in basic call service 
+
+5. Any additional relevant facts to note?" 
+
+From <https://jiradc2.ext.net.nokia.com/browse/MNRCA-26735> 
+
+
+2.1 查看ops这个命名空间下的所有pod，并显示pod的IP地址
+kubectl get pods -n ops -o wide
+2.2 查看tech命名空间下的pod名称为tech-12ddde-fdfde的日志，并显示最后30行
+kubectl logs tech-12ddde-fdfde -n tech|tail -n 30
+2.3 怎么查看test的命名空间下pod名称为test-5f7f56bfb7-dw9pw的状态
+kubectl describe pods test-5f7f56bfb7-dw9pw -n test
+2.4 如何查看test命名空间下的所有endpoints
+kubectl get ep -n test
+2.5 如何列出所有 namespace 中的所有 pod
+kubectl get pods --all-namespaces
+2.6、如何查看test命名空间下的所有ingress
+kubectl get ingress -n test
+2.7、如何删除test命名空间下某个deploymemt，名称为gitlab
+kubectl delete deploy gitlab -n test
+2.8 如何缩减test命名空间下deployment名称为gitlab的副本数为1
+kubectl scale deployment gitlab -n test --replicas=1
+2.9 如何在不进入pod内查看命名空间为test,pod名称为test-5f7f56bfb7-dw9pw的hosts
+kubectl exec -it test-5f7f56bfb7-dw9pw -n test -- cat /etc/hosts
+2.10 如何设置节点test-node-10为不可调度以及如何取消不可调度
+kubectl cordon test-node-10     #设置test-node-10为不可调度
+kubectl uncordon test-node-10   #取消 
+
+
+
+
+3、考察实际生产经验(最重要)
+3.1 某个pod启动的时候需要用到pod的名称，请问怎么获取pod的名称，简要写出对应的yaml配置(考察是否对k8s的Downward API有所了解)
+env:
+- name: test
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.name
+3.2 某个pod需要配置某个内网服务的hosts，比如数据库的host，刑如：192.168.4.124 db.test.com，请问有什么方法可以解决，简要写出对应的yaml配置或其他解决办法
+解决办法：搭建内部的dns，在coredns配置中配置内网dns的IP
+要是内部没有dns的话，在yaml文件中配置hostAliases，刑如：
+hostAliases:
+- ip: "192.168.4.124"
+  hostnames:
+  - "db.test.com"
+3.3 请用系统镜像为centos:latest制作一个jdk版本为1.8.142的基础镜像，请写出dockerfile（考察dockerfile的编写能力）
+FROM centos:latest
+ARG JDK_HOME=/root/jdk1.8.0_142
+WORKDIR /root
+ADD jdk-8u142-linux-x64.tar.gz /root
+ENV JAVA_HOME=/root/jdk1.8.0_142
+ENV PATH=$PATH:$JAVA_HOME/bin
+CMD ["bash"]
+3.4 假如某个pod有多个副本，如何让两个pod分布在不同的node节点上，请简要写出对应的yaml文件（考察是否对pod的亲和性有所了解）
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - topologyKey: "kubernetes.io/hostname"
+      labelSelector:
+        matchLabels:
+          app: test
+3.5 pod的日志如何收集，简要写出方案(考察是否真正有生产经验，日志收集是必须解决的一个难题)
+每个公司的都不一样，下面三个链接可当做参考
+https://jimmysong.io/kubernetes-handbook/practice/app-log-collection.html
+https://www.jianshu.com/p/92a4c11e77ba
+https://haojianxun.github.io/2018/12/21/kubernetes%E5%AE%B9%E5%99%A8%E6%97%A5%E5%BF%97%E6%94%B6%E9%9B%86%E6%96%B9%E6%A1%88/
+3.6 谈下你对k8s集群监控的心得，口述
+3.7 集群如何预防雪崩，简要写出必要的集群优化措施
+1、为每个pod设置资源限制
+2、设置Kubelet资源预留
+3.8 集群怎么升级，证书过期怎么解决，简要说出做法
+参考
+https://googlebaba.io/post/2019/09/11-renew-ca-by-kubeadm/   #更新证书
+https://jicki.me/kubernetes/2019/05/09/kubeadm-1.14.1/       #集群升级
+3.9 etcd如何备份，简要写出命令
+参考：https://www.bladewan.com/2019/01/31/etcd_backup/
+export ETCDCTL_API=3
+etcdctl --cert=/etc/kubernetes/pki/etcd/server.crt \
+        --key=/etc/kubernetes/pki/etcd/server.key \
+        --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+        snapshot save /data/test-k8s-snapshot.db
+
+From <https://www.cnblogs.com/uglyliu/p/11743021.html> 
+

@@ -1,0 +1,13 @@
+nsenter --target `docker inspect --format {{.State.Pid}} 8d0101ab05bc ` --net --pid iptables -I OUTPUT -d 192.168.1.225 -j DROP //PRS side
+
+nsenter --target `docker inspect --format {{.State.Pid}} 79b28a962067 ` --net --pid iptables -I INPUT -s 192.168.1.156 -j DROP //CRDB side
+
+
+
+
+curl http://nghttp2.org --http2 -v
+
+ tcpdump -i eth0 port 80 and host nghttp2.org -w d.pcap
+
+top -d 1 -n 300 -b > envoy.top &
+

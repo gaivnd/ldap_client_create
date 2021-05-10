@@ -1,0 +1,165 @@
+Linux 常用命令-- top
+top 命令实时显示进程的状态。默认状态显示的是cpu密集型的进程，并且每5秒钟更新一次。你可以通过PID的数字大小，age (newest first), time (cumulative time),resident memory usage（常驻内存使用）以及进程从启动后占用cpu的时间。
+top - 20:59:18 up 4 days,  4:47,  1 user,  load average: 0.00, 0.00, 0.00
+Tasks:  65 total,   2 running,  63 sleeping,   0 stopped,   0 zombie
+Cpu(s):  0.2%us,  0.1%sy,  0.0%ni, 99.6%id,  0.1%wa,  0.0%hi,  0.0%si,  0.0%st
+Mem:    500472k total,   282756k used,   217716k free,    82496k buffers    
+Swap:        0k total,        0k used,        0k free,    61052k cached
+PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND                                                                 
+975 root      20   0  756m  10m 8008 S  0.2  2.1   9:12.19 AliYunDun                                                                
+991 root      20   0  768m 9320 7164 S  0.2  1.9   5:19.35 AliHids                                                                  
+842 root      20   0  463m 2588 1888 S  0.1  0.5   2:43.88 AliYunDunUpdate                                                          
+  1 root      20   0 19232 1512 1224 S  0.0  0.3   0:00.65 init                                                                     
+  2 root      20   0     0    0    0 S  0.0  0.0   0:00.01 kthreadd                                                                 
+  3 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/0                                                              
+  4 root      20   0     0    0    0 S  0.0  0.0   0:00.71 ksoftirqd/0                                                              
+  5 root      RT   0     0    0    0 S  0.0  0.0   0:00.00 migration/0                                                              
+  6 root      RT   0     0    0    0 S  0.0  0.0   0:00.55 watchdog/0                                                               
+  7 root      20   0     0    0    0 S  0.0  0.0   0:12.40 events/0                                                                 
+  8 root      20   0     0    0    0 S  0.0  0.0   0:00.00 cgroup                                                                   
+  9 root      20   0     0    0    0 S  0.0  0.0   0:00.00 khelper                                                                  
+ 10 root      20   0     0    0    0 S  0.0  0.0   0:00.00 netns                                                                    
+ 11 root      20   0     0    0    0 S  0.0  0.0   0:00.00 async/mgr                                                                
+ 12 root      20   0     0    0    0 S  0.0  0.0   0:00.00 pm                                                                       
+ 13 root      20   0     0    0    0 S  0.0  0.0   0:00.00 xenwatch                                                                 
+ 14 root      20   0     0    0    0 S  0.0  0.0   0:00.00 xenbus                                                                   
+ 15 root      20   0     0    0    0 S  0.0  0.0   0:01.22 sync_supers                                                              
+ 16 root      20   0     0    0    0 S  0.0  0.0   0:01.14 bdi-default                                                              
+ 17 root      20   0     0    0    0 S  0.0  0.0   0:00.00 kintegrityd/0                                                            
+ 18 root      20   0     0    0    0 S  0.0  0.0   0:00.18 kblockd/0                                                                
+ 19 root      20   0     0    0    0 S  0.0  0.0   0:00.00 kacpid                                                                   
+ 20 root      20   0     0    0    0 S  0.0  0.0   0:00.00 kacpi_notify                                                             
+ 21 root      20   0     0    0    0 S  0.0  0.0   0:00.00 kacpi_hotplug  
+如果你想提高某个进程的优先级，可以通过renice命令，如果有摸个进程占用太多的cpu资源，可以通过kill命令。
+	• top 显示出现的每个列的含义分别为：
+PID: 进程描述符 
+USER： 进程的拥有者 
+PRI：进程的优先级 
+NI： nice level 
+SIZE: 进程拥有的内存（包括code segment + data segment + stack segment） 
+RSS: 物理内存使用
+VIRT（virtul memory usage）: 进程需要的虚拟内存大小
+RES(resident memory usage)： 常驻内存 
+SHARE: 和其他进程共享的物理内存空间 
+STAT：进程的状态，有 S=sleeping，R=running，T=stopped or traced，D=interruptible sleep（不可中断的睡眠状态），Z=zombie。 
+%CPU： CPU使用率 
+%MEM： 物理内存的使用
+TIME： 进程占用的总共cpu时间 
+COMMAND：进程的命令
+常用的命令
+(1) t: 用于是否显示总的统计数据，也就是下面这两行
+Tasks:  65 total,   2 running,  63 sleeping,   0 stopped,   0 zombie
+Cpu(s):  0.2%us,  0.1%sy,  0.0%ni, 99.6%id,  0.1%wa,  0.0%hi,  0.0%si,  0.0%st
+（2）m：用户是否显示内存的信息，也就是下面这两行
+Mem:    500472k total,   282756k used,   217716k free,    82496k buffers    
+Swap:        0k total,        0k used,        0k free,    61052k cached
+（3）A： 根据单窗口切换成多窗口，可以看到四个不同的窗口，可以通过a或者w来切换多个窗口。 四个窗口的名字分别为：Def，Job，Mem，Usr
+（4）f：进入一个动态配置top的screen中，可以根据自己的喜好配置top
+（5）o：对top的现有配置排序（order）
+（6）r：使用renice命令
+（7）k：使用kill命令
+top的命令行使用方式
+（1） 批量处理模式
+$ top -b 
+加上-b后，top显示的时候，将每一次显示的结果都打印出来，不会将上一次的结果给冲掉。
+（2） 显示某个进程的信息
+$ top -p pid
+如果是多个进程，只要如下：
+$ top -p pid1,pid2,pid3
+(3) 显示某个用户的进程信息
+$ top -u username
+(4) 显示线程的信息，而不是进程的信息
+$ top -H 
+(5) 设置刷屏的时间(单位为s)
+$ top -d ntime
+
+
+grep、sed、awk
+
+
+
+
+
+
+
+grep(关键字: 截取) 文本搜集工具, 结合正则表达式非常强大
+主要参数 []
+-c : 只输出匹配的行
+-I : 不区分大小写
+-h : 查询多文件时不显示文件名
+-l : 查询多文件时, 只输出包含匹配字符的文件名
+-n : 显示匹配的行号及行
+-v : 显示不包含匹配文本的所有行(我经常用除去grep本身)
+基本工作方式: grep 要匹配的内容 文件名, 例如:
+grep 'test' d* 显示所有以d开头的文件中包含test的行
+grep 'test' aa bb cc 显示在 aa bb cc 文件中包含test的行
+grep '[a-z]\{5}\' aa 显示所有包含字符串至少有5个连续小写字母的串
+
+From <http://www.cnblogs.com/moveofgod/p/3540575.html> 
+
+sed(关键字: 编辑) 以行为单位的文本编辑工具 sed可以直接修改档案, 不过一般不推荐这么做, 可以分析 standard input
+基本工作方式: sed [-nef] '[动作]' [输入文本]
+-n : 安静模式, 一般sed用法中, 来自stdin的数据一般会被列出到屏幕上, 如果使用-n参数后, 只有经过sed处理的那一行被列出来.
+-e : 多重编辑, 比如你同时又想删除某行, 又想改变其他行, 那么可以用 sed -e '1,5d' -e 's/abc/xxx/g' filename
+-f : 首先将 sed的动作写在一个档案内, 然后通过 sed -f scriptfile 就可以直接执行 scriptfile 内的sed动作 (没有实验成功, 不推荐使用)
+-i : 直接编辑, 这回就是真的改变文件中的内容了, 别的都只是改变显示. (不推荐使用)
+动作:
+a 新增, a 后面可以接字符串, 而这个字符串会在新的一行出现. (下一行)
+c 取代, c 后面的字符串, 这些字符串可以取代 n1,n2之间的行
+d 删除, 后面不接任何东西
+i 插入, 后面的字符串, 会在上一行出现
+p 打印, 将选择的资料列出, 通常和 sed -n 一起运作 sed -n '3p' 只打印第3行
+s 取代, 类似vi中的取代, 1,20s/old/new/g
+[line-address]q 退出, 匹配到某行退出, 提高效率
+[line-address]r 匹配到的行读取某文件 例如: sed '1r qqq' abc , 注意, 写入的文本是写在了第1行的后边, 也就是第2行
+[line-address]w file, 匹配到的行写入某文件  例如: sed -n '/m/w qqq' abc , 从abc中读取带m的行写到qqq文件中, 注意, 这个写入带有覆盖性.
+
+举例:
+sed '1d' abc 删除 abc 档案里的第一行, 注意, 这时会显示除了第一行之外的所有行, 因为第一行已经被删除了(实际文件并没有被删除,而只是显示的时候被删除了)
+sed -n '1d' abc 什么内容也不显示, 因为经过sed处理的行, 是个删除操作, 所以不现实.
+sed '2,$d' abc 删除abc中从第二行到最后一行所有的内容, 注意, $符号正则表达式中表示行末尾, 但是这里并没有说那行末尾, 就会指最后一行末尾, ^开头, 如果没有指定哪行开头, 那么就是第一行开头
+sed '$d' abc 只删除了最后一行, 因为并没有指定是那行末尾, 就认为是最后一行末尾
+sed '/test/d' abc 文件中所有带 test 的行, 全部删除
+sed '/test/a RRRRRRR' abc 将 RRRRRRR 追加到所有的带 test 行的下一行 也有可能通过行 sed '1,5c RRRRRRR' abc
+sed '/test/c RRRRRRR' abc 将 RRRRRRR 替换所有带 test 的行, 当然, 这里也可以是通过行来进行替换, 比如 sed '1,5c RRRRRRR' abc
+
+From <http://www.cnblogs.com/moveofgod/p/3540575.html> 
+
+awk(关键字:分析&处理) 一行一行的分析处理 awk '条件类型1{动作1}条件类型2{动作2}' filename, awk 也可以读取来自前一个指令的 standard input
+相对于sed常常用于一整行处理, awk则比较倾向于一行当中分成数个"字段"(区域)来处理, 默认的分隔符是空格键或tab键
+例如:
+last -n 5 | awk '{print $1 "\t" $3}' 这里大括号内$1"\t"$3 之间不加空格也可以, 不过最好还是加上个空格, 另外注意"\t"是有双引号的, 因为本身这些内容都在单引号内
+$0 代表整行 $1代表第一个区域, 依此类推
+awk的处理流程是:
+1. 读第一行, 将第一行资料填入变量 $0, $1... 等变量中
+2. 依据条件限制, 执行动作
+3. 接下来执行下一行
+所以, AWK一次处理是一行, 而一次中处理的最小单位是一个区域
+另外还有3个变量, NF: 每一行处理的字段数, NR 目前处理到第几行 FS 目前的分隔符
+逻辑判断 > < >= <= == !== , 赋值直接使用=
+cat /etc/passwd | awk '{FS=":"} $3<10 {print $1 "\t" $3}' 首先定义分隔符为:, 然后判断, 注意看, 判断没有写在{}中, 然后执行动作, FS=":"这是一个动作, 赋值动作, 不是一个判断, 所以不写在{}中
+BEGIN END , 给程序员一个初始化和收尾的工作, BEGIN之后列出的操作在{}内将在awk开始扫描输入之前执行, 而END{}内的操作, 将在扫描完输入文件后执行.
+awk '/test/ {print NR}' abc 将带有test的行的行号打印出来, 注意//之间可以使用正则表达式
+awk {}内, 可以使用 if else ,for(i=0;i<10;i++), i=1 while(i<NF)
+可见, awk的很多用法都等同于C语言, 比如"\t" 分隔符, print的格式, if, while, for 等等
+awk 是相当复杂的工具, 真正使用时, 再补充吧. (有关工具的picture)
+
+
+
+tcpdump 与wireshark
+Wireshark(以前是ethereal)是Windows下非常简单易用的抓包工具。但在Linux下很难找到一个好用的图形化抓包工具。
+还好有Tcpdump。我们可以用Tcpdump + Wireshark 的完美组合实现：在 Linux 里抓包，然后在Windows 里分析包。
+tcpdump tcp -i eth1 -t -s 0 -c 100 and dst port ! 22 and src net 192.168.1.0/24 -w ./target.cap
+	(1)tcp: ip icmp arp rarp 和 tcp、udp、icmp这些选项等都要放到第一个参数的位置，用来过滤数据报的类型
+	(2)-i eth1 : 只抓经过接口eth1的包
+	(3)-t : 不显示时间戳
+	(4)-s 0 : 抓取数据包时默认抓取长度为68字节。加上-S 0 后可以抓到完整的数据包
+	(5)-c 100 : 只抓取100个数据包
+	(6)dst port ! 22 : 不抓取目标端口是22的数据包
+	(7)src net 192.168.1.0/24 : 数据包的源网络地址为192.168.1.0/24
+(8)-w ./target.cap : 保存成cap文件，方便用ethereal(即wireshark)分析
+
+
+
+
+
